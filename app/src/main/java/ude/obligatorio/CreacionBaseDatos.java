@@ -23,48 +23,53 @@ import ude.obligatorio.config.Config;
  */
 public class CreacionBaseDatos {
 
-    private static final String[][] ALUMNOS = {
-        {"12345678", "Matilda", "Wormwood"},
-        {"25554449", "Charlie", "Brown"},
-        {"39876542", "Dora", "Marquez"},
-        {"51112223", "Daniel", "Mitchell"},
-        {"66666666", "Merlina", "Addams"}
-    };
-
-    private static final String CREAR_BASE = """
-        CREATE DATABASE IF NOT EXISTS Escuela
-        DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci\
-        """;
-
-    private static final String CREAR_ALUMNOS = """
-        CREATE TABLE IF NOT EXISTS Escuela.Alumnos (
-            cedula   INTEGER     NOT NULL,
-            nombre   VARCHAR(45) NOT NULL,
-            apellido VARCHAR(45) NOT NULL,
-            PRIMARY KEY (cedula)
-        ) ENGINE=InnoDB
-        """;
-
-    private static final String CREAR_REGISTROS = """
-        CREATE TABLE IF NOT EXISTS Escuela.Registros (
-            numero    INTEGER     NOT NULL,
-            cedAlu    INTEGER     NOT NULL,
-            actividad VARCHAR(45) NOT NULL,
-            nota      INTEGER     NOT NULL,
-            PRIMARY KEY (cedAlu, numero),
-            FOREIGN KEY (cedAlu) REFERENCES Escuela.Alumnos (cedula)
-        ) ENGINE=InnoDB
-        """;
-
-    private static final String INSERTAR_ALUMNO =
-            "INSERT INTO Escuela.Alumnos (cedula, nombre, apellido) VALUES (?, ?, ?)";
-
     public static void main(String[] args) {
 
         String driver = Config.getObligatorio("driver");
         String url = Config.getObligatorio("url");
         String user = Config.getObligatorio("user");
         String password = Config.getObligatorio("password");
+        String database = Config.getObligatorio("database");
+
+        String[][] ALUMNOS = {
+            {"12345678", "Matilda", "Wormwood"},
+            {"25554449", "Charlie", "Brown"},
+            {"39876542", "Dora", "Marquez"},
+            {"51112223", "Daniel", "Mitchell"},
+            {"66666666", "Merlina", "Addams"}
+        };
+
+        String CREAR_BASE = """
+            CREATE DATABASE IF NOT EXISTS %s
+            DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci\
+            """.formatted(database);
+
+        String CREAR_ALUMNOS = """
+            CREATE TABLE IF NOT EXISTS %s.Alumnos (
+                cedula   INTEGER     NOT NULL,
+                nombre   VARCHAR(45) NOT NULL,
+                apellido VARCHAR(45) NOT NULL,
+                PRIMARY KEY (cedula)
+            ) ENGINE=InnoDB
+            """.formatted(database);
+
+        String CREAR_REGISTROS = """
+            CREATE TABLE IF NOT EXISTS %s.Registros (
+                numero    INTEGER     NOT NULL,
+                cedAlu    INTEGER     NOT NULL,
+                actividad VARCHAR(45) NOT NULL,
+                nota      INTEGER     NOT NULL,
+                PRIMARY KEY (cedAlu, numero),
+                FOREIGN KEY (cedAlu) REFERENCES %s.Alumnos (cedula)
+            ) ENGINE=InnoDB
+            """.formatted(database, database);
+
+        String INSERTAR_ALUMNO =
+                "INSERT INTO %s.Alumnos (cedula, nombre, apellido) VALUES (?, ?, ?)".formatted(database);
+
+        if (!database.matches("[a-zA-Z0-9_]+")) {
+            throw new IllegalArgumentException("Nombre de base de datos inválido");
+        }
 
         Connection con = null;
         try {

@@ -20,7 +20,7 @@ public class PoolConexiones implements IPoolConexiones {
     public PoolConexiones() throws PersistenciaException {
         try {
             driver = Config.getObligatorio("driver");
-            url = Config.getObligatorio("url");
+            url = Config.getObligatorio("url") + Config.getObligatorio("database");
             user = Config.getObligatorio("user");
             password = Config.getObligatorio("password");
             tamanio = Config.getInt("tamanio", 5);

@@ -10,7 +10,7 @@ services:
     env_file:
       - .env
     environment:
-      DB_URL: jdbc:mysql://mysql:3306/Escuela
+      DB_URL: jdbc:mysql://mysql:3306/
     volumes:
       - ./app/data:/app/data
     depends_on:
@@ -27,7 +27,6 @@ services:
       - .env
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-Escuela}
       MYSQL_USER: ${MYSQL_USER:-app}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-app123A}
     volumes:
