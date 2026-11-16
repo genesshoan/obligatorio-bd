@@ -17,7 +17,7 @@ public class PoolConexionesTxt implements IPoolConexiones {
     public PoolConexionesTxt() throws PersistenciaException {
         try {
             directorio = Path.of(Config.getObligatorio("directorio"));
-            maximoEscritoresEnEspera = Math.max(0, Config.getInt("maximoEscritoresEnEspera", 2));
+            maximoEscritoresEnEspera = Math.max(0, Config.getInt("maximoEscritoresEnEspera", 0));
 
             Files.createDirectories(directorio);
 
