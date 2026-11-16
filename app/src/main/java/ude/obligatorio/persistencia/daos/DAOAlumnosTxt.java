@@ -3,24 +3,15 @@ package ude.obligatorio.persistencia.daos;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
-
 import ude.obligatorio.logica.Alumno;
 import ude.obligatorio.logica.excepciones.PersistenciaException;
-import ude.obligatorio.persistencia.consultas.Consultas;
-import ude.obligatorio.persistencia.poolConexiones.Conexion;
+import ude.obligatorio.logica.valueObjects.VOAlumnoProm;
+import ude.obligatorio.logica.valueObjects.VORegistroListado;
 import ude.obligatorio.persistencia.poolConexiones.ConexionTxt;
 import ude.obligatorio.persistencia.poolConexiones.IConexion;
-import ude.obligatorio.logica.valueObjects.VORegistroListado;
-import ude.obligatorio.logica.valueObjects.VOAlumnoProm;    
 
 public class DAOAlumnosTxt implements IDAOAlumnos {
 
@@ -42,17 +33,17 @@ public class DAOAlumnosTxt implements IDAOAlumnos {
         return existeCedula;
     }
 
-    @Override 
+    @Override
     public void insert(IConexion icon, Alumno alumno) throws PersistenciaException {
         verificarSinSeparador(alumno.getNombre(), "El nombre");
         verificarSinSeparador(alumno.getApellido(), "El apellido");
 
         ConexionTxt con = (ConexionTxt) icon;
-        
+
         List<Alumno> alumnos = leerAlumnos(con);
         alumnos.add(alumno);
-        alumnos.sort (Comparator.comparingInt(Alumno::getCedula));
-        
+        alumnos.sort(Comparator.comparingInt(Alumno::getCedula));
+
         try (BufferedWriter writer = con.getArchivoAlumnosEscritura()) {
             for (Alumno a : alumnos) {
                 writer.write(a.getCedula() + " | " + a.getNombre() + " | " + a.getApellido());
@@ -63,7 +54,7 @@ public class DAOAlumnosTxt implements IDAOAlumnos {
         }
     }
 
-    @Override 
+    @Override
     public Alumno find(IConexion icon, int cedA) throws PersistenciaException {
         Alumno alumno = null;
         ConexionTxt con = (ConexionTxt) icon;
@@ -74,27 +65,27 @@ public class DAOAlumnosTxt implements IDAOAlumnos {
                 Alumno a = leerAlumno(linea);
                 if (a != null && a.getCedula() == cedA) {
                     alumno = a;
-            }
+                }
             }
         } catch (IOException | NumberFormatException | ArrayIndexOutOfBoundsException e) {
             throw new PersistenciaException("Error de acceso a los datos");
         }
-        
+
         return alumno;
     }
 
-    @Override 
+    @Override
     public boolean esVacio(IConexion icon) throws PersistenciaException {
         return leerAlumnos((ConexionTxt) icon).isEmpty();
     }
 
-    @Override 
+    @Override
     public List<Alumno> listarAlumnos(IConexion icon) throws PersistenciaException {
         ConexionTxt con = (ConexionTxt) icon;
         return leerAlumnos(con);
     }
 
-    @Override 
+    @Override
     public VOAlumnoProm alumnoMayorPromedio(IConexion icon) throws PersistenciaException {
         Alumno mejor = null;
         double mayor = 0;
@@ -102,18 +93,18 @@ public class DAOAlumnosTxt implements IDAOAlumnos {
         for (Alumno a : leerAlumnos((ConexionTxt) icon)) {
             double prom = new DAORegistrosTxt(a.getCedula()).promedioNotas(icon);
 
-            if(mejor == null || prom > mayor) {
+            if (mejor == null || prom > mayor) {
                 mejor = a;
                 mayor = prom;
             }
         }
 
-        return mejor != null 
-            ? new VOAlumnoProm(mejor.getCedula(), mejor.getNombre(), mejor.getApellido(), mayor)
-            : null;
+        return mejor != null
+                ? new VOAlumnoProm(mejor.getCedula(), mejor.getNombre(), mejor.getApellido(), mayor)
+                : null;
     }
 
-    @Override 
+    @Override
     public int contarAlumnos(IConexion icon, String act, int nota) throws PersistenciaException {
         int cant = 0;
 
@@ -128,26 +119,24 @@ public class DAOAlumnosTxt implements IDAOAlumnos {
         return cant;
     }
 
-    // Auxiliares
-
-    private List<Alumno> leerAlumnos (ConexionTxt con) throws PersistenciaException {
+    private List<Alumno> leerAlumnos(ConexionTxt con) throws PersistenciaException {
         List<Alumno> lista = new ArrayList<Alumno>();
 
         try (BufferedReader reader = con.getArchivoAlumnos()) {
-           String linea;
+            String linea;
 
-           while ((linea = reader.readLine()) != null) {
+            while ((linea = reader.readLine()) != null) {
                 if (!linea.isBlank()) {
                     lista.add(leerAlumno(linea));
                 }
-           }
+            }
         } catch (IOException e) {
             throw new PersistenciaException("Error de acceso a los datos");
         }
         return lista;
     }
 
-    private Alumno leerAlumno (String linea) throws PersistenciaException {
+    private Alumno leerAlumno(String linea) throws PersistenciaException {
         Alumno alumno = null;
 
         if (linea != null && !linea.isBlank()) {
@@ -159,13 +148,14 @@ public class DAOAlumnosTxt implements IDAOAlumnos {
                 throw new PersistenciaException("Error al leer datos");
             }
         }
-        
+
         return alumno;
     }
 
     private void verificarSinSeparador(String dato, String campo) throws PersistenciaException {
         if (dato != null && dato.indexOf('|') >= 0) {
-            throw new PersistenciaException(campo + " no puede contener el caracter '|': es el separador de campos del archivo de texto");
+            throw new PersistenciaException(
+                    campo + " no puede contener el caracter '|': es el separador de campos del archivo de texto");
         }
     }
 }
